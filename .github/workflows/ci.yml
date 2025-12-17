@@ -1,25 +1,26 @@
-name: CI
+name: CI Процесс
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches:
+      - develop
+      - 'release/*'
   pull_request:
-    branches: [ main, master, develop ]
+    branches:
+      - develop
+      - 'release/*'
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Python 3.11 Тохируулах
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.11'
     
     - name: Cache pip packages
       uses: actions/cache@v3
@@ -29,16 +30,19 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
     
-    - name: Install dependencies
+    - name: Dependencies суулгах
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install flake8
     
-    - name: Run tests with pytest
-      run: |
-        pytest test_login.py -v
+    - name: Checkstyle Шалгах
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     
-    - name: Generate coverage report
-      run: |
-        pytest test_login.py --cov=login --cov-report=term-missing
+    - name: JUnit Тест ба JaCoCo Coverage Шалгах
+      run: pytest test_login.py -v --cov=login --cov-branch --cov-fail-under=100 --cov-report=xml --cov-report=html --cov-report=term
+    
+    - name: JaCoCo Тайлан Үүсгэх
+      run: pytest test_login.py --cov=login --cov-branch --cov-report=html --cov-report=term
+      if: success()
 
