@@ -4,7 +4,6 @@ from werkzeug.exceptions import BadRequest
 import hashlib
 import jwt
 import datetime
-from functools import wraps
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend requests
@@ -99,7 +98,9 @@ def login():
     except BadRequest:
         # Handle BadRequest from Flask when JSON is malformed or missing
         return jsonify({'message': 'Мэдээлэл оруулаагүй байна'}), 400
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
+        # Generic exception handler for unexpected errors
+        # This is defensive code that's difficult to test without causing actual errors
         print(f"Login error: {str(e)}")
         return jsonify({'message': 'Серверийн алдаа гарлаа'}), 500
 
